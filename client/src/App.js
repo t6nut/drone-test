@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import React, { useState, useEffect, useRef } from 'react';
+import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet';
 import L from 'leaflet';
 import io from 'socket.io-client';
 import { initializeApp } from "firebase/app";
@@ -45,8 +45,11 @@ function App() {
 	const [connected, setConnected] = useState(false);
 	const [speed, setSpeed] = useState(0);
 	const [maxSpeed, setMaxSpeed] = useState(65);
-	const socketRef = React.useRef(null);
-	const mapRef = React.useRef(null);
+	const [routeDestination, setRouteDestination] = useState(null);
+	const [routeLat, setRouteLat] = useState('');
+	const [routeLng, setRouteLng] = useState('');
+	const socketRef = useRef(null);
+	const mapRef = useRef(null);
 
 	useEffect(() => {
 		const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001';
@@ -164,6 +167,10 @@ function App() {
 						<label>Altitude</label>
 						<div className="value">{altitude.toFixed(1)}m</div>
 					</div>
+					<div className="telemetry-item">
+						<label>Speed</label>
+						<div className="value">{speed} / {maxSpeed} km/h</div>
+					</div>
 				</div>
 
 				<div className="gps-info">
@@ -172,6 +179,40 @@ function App() {
 						<span>Lat: {dronePos[0].toFixed(6)}</span>
 						<span>Lng: {dronePos[1].toFixed(6)}</span>
 					</div>
+				</div>
+
+				<div className="route-section">
+					<label>Set Route</label>
+					<div className="route-inputs">
+						<input 
+							type="number" 
+							placeholder="Latitude"
+							value={routeLat}
+							onChange={(e) => setRouteLat(e.target.value)}
+							step="0.000001"
+						/>
+						<input 
+							type="number" 
+							placeholder="Longitude"
+							value={routeLng}
+							onChange={(e) => setRouteLng(e.target.value)}
+							step="0.000001"
+						/>
+					</div>
+					<button 
+						className="btn btn-info"
+						onClick={() => {
+							if (routeLat && routeLng) {
+								const dest = { lat: parseFloat(routeLat), lng: parseFloat(routeLng) };
+								setRouteDestination(dest);
+								if (socketRef.current) {
+									socketRef.current.emit('set-route', dest);
+								}
+							}
+						}}
+					>
+						🗺️ Set Route
+					</button>
 				</div>
 
 				<div className="controls">
@@ -202,11 +243,21 @@ function App() {
 					>
 						🚨 Emergency
 					</button>
+					<button 
+						className="btn btn-info"
+						onClick={() => {
+							if (mapRef.current) {
+								mapRef.current.setView(dronePos, 16);
+							}
+						}}
+					>
+						📍 Center View
+					</button>
 				</div>
 			</div>
 
 			<div className="map-container">
-				<MapContainer center={dronePos} zoom={13} className="leaflet-map">
+				<MapContainer center={homeBase} zoom={13} className="leaflet-map" whenCreated={(mapInstance) => { mapRef.current = mapInstance; }}>
 					<TileLayer 
 						url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
 						attribution='&copy; OpenStreetMap contributors'
@@ -231,6 +282,28 @@ function App() {
 							</div>
 						</Popup>
 					</Marker>
+					{routeDestination && (
+						<Polyline 
+							positions={[dronePos, [routeDestination.lat, routeDestination.lng]]}
+							color="#FF5722"
+							weight={3}
+							dashArray="5, 5"
+						/>
+					)}
+					{routeDestination && (
+						<Marker position={[routeDestination.lat, routeDestination.lng]} icon={L.icon({
+							iconUrl: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23FF5722"><circle cx="12" cy="12" r="8"/></svg>',
+							iconSize: [24, 24],
+						})}>
+							<Popup>
+								<div>
+									<strong>Route Destination</strong><br />
+									Lat: {routeDestination.lat.toFixed(6)}<br />
+									Lng: {routeDestination.lng.toFixed(6)}
+								</div>
+							</Popup>
+						</Marker>
+					)}
 				</MapContainer>
 			</div>
 		</div>
