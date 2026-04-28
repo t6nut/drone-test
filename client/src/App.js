@@ -20,6 +20,9 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
+// Home base coordinates (Naissaare tuletorn)
+const homeBase = [59.603778, 24.510694];
+
 // Custom drone marker icon
 const droneIcon = L.divIcon({
 	html: `<div style="font-size: 24px; transform: rotate(-45deg);">🚁</div>`,
@@ -27,8 +30,15 @@ const droneIcon = L.divIcon({
 	popupAnchor: [0, -15]
 });
 
+// Custom home base marker icon
+const homeBaseIcon = L.divIcon({
+	html: `<div style="font-size: 20px;">🏠</div>`,
+	iconSize: [25, 25],
+	popupAnchor: [0, -12]
+});
+
 function App() {
-	const [dronePos, setDronePos] = useState([51.505, -0.09]);
+	const [dronePos, setDronePos] = useState([59.603778, 24.510694]); // Start at home base
 	const [battery, setBattery] = useState(100);
 	const [altitude, setAltitude] = useState(0);
 	const [status, setStatus] = useState('idle');
@@ -106,6 +116,7 @@ function App() {
 	const getStatusColor = () => {
 		switch(status) {
 			case 'flying': return '#2196F3';
+			case 'returning': return '#FF5722'; // Deep orange for returning
 			case 'landing': return '#FF9800';
 			case 'idle': return '#4CAF50';
 			default: return '#9E9E9E';
@@ -167,6 +178,13 @@ function App() {
 						✈️ Takeoff
 					</button>
 					<button 
+						className="btn btn-primary"
+						onClick={() => sendCommand('return')}
+						disabled={status === 'landing'}
+					>
+						🏠 Return to Base
+					</button>
+					<button 
 						className="btn btn-warning"
 						onClick={() => sendCommand('land')}
 						disabled={status === 'idle'}
@@ -195,6 +213,16 @@ function App() {
 								Battery: {battery.toFixed(1)}%<br />
 								Altitude: {altitude.toFixed(1)}m<br />
 								Status: {status}
+							</div>
+						</Popup>
+					</Marker>
+					<Marker position={homeBase} icon={homeBaseIcon}>
+						<Popup>
+							<div>
+								<strong>Home Base</strong><br />
+								Naissaare Tuletorn<br />
+								Lat: {homeBase[0].toFixed(6)}<br />
+								Lng: {homeBase[1].toFixed(6)}
 							</div>
 						</Popup>
 					</Marker>
