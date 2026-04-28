@@ -21,4 +21,3 @@ jobs:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_UAV_TEST_5B5E9 }}
           projectId: uav-test-5b5e9
-					channelId: live
