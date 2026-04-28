@@ -9,11 +9,12 @@ import './App.css';
 const firebaseConfig = {
 	apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
 	authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN,
+	databaseURL: process.env.REACT_APP_FIREBASE_DATABASE_URL,
 	projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID,
 	storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET,
 	messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID,
 	appId: process.env.REACT_APP_FIREBASE_APP_ID,
-	measurementId: "G-9BN1E68R4W"
+	measurementId: process.env.REACT_APP_FIREBASE_MEASUREMENT_ID
 };
 
 const app = initializeApp(firebaseConfig);
@@ -35,13 +36,24 @@ function App() {
 	const socketRef = React.useRef(null);
 
 	useEffect(() => {
+		const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001';
+		console.log('Connecting to backend:', backendUrl);
+
 		// Initialize socket connection
-		const socket = io('http://localhost:3001');
+		const socket = io(backendUrl);
 		socketRef.current = socket;
 
 		socket.on('connect', () => {
-			console.log('✅ Connected to server');
+			console.log('✅ Connected to server', { url: backendUrl, id: socket.id });
 			setConnected(true);
+		});
+
+		socket.on('connect_error', (err) => {
+			console.error('⚠️ Socket connect error:', err);
+		});
+
+		socket.on('reconnect_attempt', (attempt) => {
+			console.log('🔄 Socket reconnect attempt', attempt);
 		});
 
 		socket.on('drone-update', (data) => {
@@ -58,8 +70,8 @@ function App() {
 			console.log('Command acknowledged:', ack);
 		});
 
-		socket.on('disconnect', () => {
-			console.log('❌ Disconnected from server');
+		socket.on('disconnect', (reason) => {
+			console.log('❌ Disconnected from server', reason);
 			setConnected(false);
 		});
 
