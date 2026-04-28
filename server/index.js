@@ -14,8 +14,13 @@ let droneData = {
   lng: 24.510694,
   battery: 100,
   altitude: 0,
-  status: 'idle'
+  status: 'idle',
+  speed: 0, // km/h
+  maxSpeed: 65 // km/h
 };
+
+// Route state
+let currentRoute = null; // { lat, lng } destination
 
 // Home base coordinates (Naissaare tuletorn)
 const homeBase = {
@@ -31,6 +36,9 @@ io.on('connection', (socket) => {
 
   // Simulate drone movement and battery drain every 2 seconds
   const interval = setInterval(() => {
+    let prevLat = droneData.lat;
+    let prevLng = droneData.lng;
+
     // Check for low battery auto-return
     if (droneData.status === 'flying' && droneData.battery < 10) {
       droneData.status = 'returning';
@@ -44,25 +52,47 @@ io.on('connection', (socket) => {
       const distance = Math.sqrt(latDiff * latDiff + lngDiff * lngDiff);
       
       if (distance > 0.0001) { // If not at base yet
-        const step = 0.0002; // Movement step size
+        const step = 0.0003; // Movement step size for return
         droneData.lat += (latDiff / distance) * step;
         droneData.lng += (lngDiff / distance) * step;
         droneData.altitude = Math.min(100, droneData.altitude + 1);
-        droneData.battery = Math.max(0, droneData.battery - 1.5); // Faster drain when returning
+        // Battery drain: 0.3% per 2 seconds when returning (medium usage)
+        droneData.battery = Math.max(0, droneData.battery - 0.3);
       } else {
         // Arrived at base, start landing
         droneData.status = 'landing';
         console.log('🏠 Arrived at home base, landing');
       }
     } else if (droneData.status === 'flying') {
-      // Random movement (simulate GPS drift)
-      droneData.lat += (Math.random() - 0.5) * 0.0005;
-      droneData.lng += (Math.random() - 0.5) * 0.0005;
-      droneData.altitude = Math.min(100, droneData.altitude + 1);
-      droneData.battery = Math.max(0, droneData.battery - 1);
+      if (currentRoute) {
+        // Move towards route destination
+        const latDiff = currentRoute.lat - droneData.lat;
+        const lngDiff = currentRoute.lng - droneData.lng;
+        const distance = Math.sqrt(latDiff * latDiff + lngDiff * lngDiff);
+        
+        if (distance > 0.0001) {
+          const step = 0.0004; // Faster movement for route following
+          droneData.lat += (latDiff / distance) * step;
+          droneData.lng += (lngDiff / distance) * step;
+          droneData.altitude = Math.min(100, droneData.altitude + 1);
+          // Battery drain: 0.4% per 2 seconds when following route (higher usage)
+          droneData.battery = Math.max(0, droneData.battery - 0.4);
+        } else {
+          // Arrived at destination
+          currentRoute = null;
+          console.log('🎯 Arrived at route destination');
+        }
+      } else {
+        // Random movement (simulate GPS drift)
+        droneData.lat += (Math.random() - 0.5) * 0.0002;
+        droneData.lng += (Math.random() - 0.5) * 0.0002;
+        droneData.altitude = Math.min(100, droneData.altitude + 1);
+        // Battery drain: 0.2% per 2 seconds for random flight (normal usage)
+        droneData.battery = Math.max(0, droneData.battery - 0.2);
+      }
     } else if (droneData.status === 'landing') {
       droneData.altitude = Math.max(0, droneData.altitude - 2);
-      droneData.battery = Math.max(0, droneData.battery - 0.5);
+      droneData.battery = Math.max(0, droneData.battery - 0.1); // Minimal drain when landing
       if (droneData.altitude === 0) {
         droneData.status = 'idle';
         console.log('🛬 Drone landed');
@@ -75,10 +105,18 @@ io.on('connection', (socket) => {
       
       if (distance < 0.0001 && droneData.battery < 100) {
         // At home base and needs charging
-        droneData.battery = Math.min(100, droneData.battery + 2); // Recharge 2% per 2 seconds
+        droneData.battery = Math.min(100, droneData.battery + 0.5); // Recharge 0.5% per 2 seconds (slower)
         console.log(`🔋 Recharging: ${droneData.battery.toFixed(1)}%`);
       }
     }
+
+    // Calculate speed based on movement (km/h)
+    const latChange = droneData.lat - prevLat;
+    const lngChange = droneData.lng - prevLng;
+    const distanceMoved = Math.sqrt(latChange * latChange + lngChange * lngChange);
+    // 1 degree ≈ 111km, so distance in km = distanceMoved * 111
+    // Speed = distance per 2 seconds * 1800 (to get per hour)
+    droneData.speed = Math.round(distanceMoved * 111 * 1800);
 
     socket.emit('drone-update', droneData);
   }, 2000);
@@ -103,6 +141,17 @@ io.on('connection', (socket) => {
     }
     
     socket.emit('command-ack', { command, status: droneData.status });
+  });
+
+  // Handle route setting
+  socket.on('set-route', (destination) => {
+    console.log('🗺️ Route set to:', destination);
+    currentRoute = destination;
+    if (droneData.status === 'idle') {
+      droneData.status = 'flying';
+      console.log('✈️ Drone taking off for route');
+    }
+    socket.emit('route-ack', { destination, status: droneData.status });
   });
 
   socket.on('disconnect', () => {

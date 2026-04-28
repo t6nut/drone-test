@@ -43,7 +43,10 @@ function App() {
 	const [altitude, setAltitude] = useState(0);
 	const [status, setStatus] = useState('idle');
 	const [connected, setConnected] = useState(false);
+	const [speed, setSpeed] = useState(0);
+	const [maxSpeed, setMaxSpeed] = useState(65);
 	const socketRef = React.useRef(null);
+	const mapRef = React.useRef(null);
 
 	useEffect(() => {
 		const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001';
@@ -71,6 +74,8 @@ function App() {
 			setBattery(data.battery);
 			setAltitude(data.altitude);
 			setStatus(data.status);
+			setSpeed(data.speed || 0);
+			setMaxSpeed(data.maxSpeed || 65);
 			
 			// Sync to Firebase
 			set(ref(db, 'drone'), data);
