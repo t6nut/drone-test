@@ -4,9 +4,42 @@ const socketIo = require('socket.io');
 const cors = require('cors');
 
 const app = express();
-app.use(cors());
+
+const allowedOrigins = [
+  'http://localhost:3000',
+  'http://localhost:3001',
+  'http://localhost:3002',
+  'https://uav-test-5b5e9.web.app',
+  'https://uav-test-5b5e9.firebaseapp.com',
+  process.env.CLIENT_URL
+].filter(Boolean);
+
+const corsOptions = {
+  origin(origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+      return;
+    }
+
+    callback(new Error(`Origin ${origin} is not allowed by CORS`));
+  },
+  methods: ['GET', 'POST'],
+  credentials: true
+};
+
+app.use(cors(corsOptions));
 const server = http.createServer(app);
-const io = socketIo(server, { cors: { origin: "*" } });
+const io = socketIo(server, {
+  cors: corsOptions
+});
+
+app.get('/', (_req, res) => {
+  res.json({ status: 'ok', service: 'drone-server' });
+});
+
+app.get('/health', (_req, res) => {
+  res.json({ status: 'ok' });
+});
 
 // Drone simulation state
 let droneData = {
@@ -161,7 +194,8 @@ io.on('connection', (socket) => {
 });
 
 const PORT = process.env.PORT || 3001;
+const HOST = process.env.HOST || '0.0.0.0';
 
-server.listen(PORT, () => {
-  console.log(`🚁 Drone server running on http://localhost:${PORT}`);
+server.listen(PORT, HOST, () => {
+  console.log(`Drone server running on http://${HOST}:${PORT}`);
 });
