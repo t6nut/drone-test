@@ -46,6 +46,10 @@ app.get('/health', (_req, res) => {
   res.json({ status: 'ok' });
 });
 
+app.get('/socket-probe', (_req, res) => {
+  res.json({ status: 'ok', socketPath: '/socket.io/' });
+});
+
 app.get('/favicon.ico', (_req, res) => {
   res.status(204).end();
 });
