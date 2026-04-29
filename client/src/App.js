@@ -7,14 +7,14 @@ import { getDatabase, ref, onValue, set } from "firebase/database";
 import './App.css';
 
 const firebaseConfig = {
-	apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
-	authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN,
-	databaseURL: process.env.REACT_APP_FIREBASE_DATABASE_URL,
-	projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID,
-	storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET,
-	messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID,
-	appId: process.env.REACT_APP_FIREBASE_APP_ID,
-	measurementId: process.env.REACT_APP_FIREBASE_MEASUREMENT_ID
+	apiKey: process.env.REACT_APP_FIREBASE_API_KEY || 'AIzaSyANMbclPxCFNDwkP8id-dpKzfzuMV21fps',
+	authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN || 'uav-test-5b5e9.firebaseapp.com',
+	databaseURL: process.env.REACT_APP_FIREBASE_DATABASE_URL || 'https://uav-test-5b5e9-default-rtdb.europe-west1.firebasedatabase.app',
+	projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID || 'uav-test-5b5e9',
+	storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET || 'uav-test-5b5e9.firebasestorage.app',
+	messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID || '412946677587',
+	appId: process.env.REACT_APP_FIREBASE_APP_ID || '1:412946677587:web:0209930fda1767fcdb2ba6',
+	measurementId: process.env.REACT_APP_FIREBASE_MEASUREMENT_ID || 'G-9BN1E68R4W'
 };
 
 const app = initializeApp(firebaseConfig);
