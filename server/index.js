@@ -5,6 +5,11 @@ const cors = require('cors');
 
 const app = express();
 
+app.use((req, _res, next) => {
+  console.log(`${new Date().toISOString()} ${req.method} ${req.originalUrl}`);
+  next();
+});
+
 const allowedOrigins = [
   'http://localhost:3000',
   'http://localhost:3001',
@@ -39,6 +44,10 @@ app.get('/', (_req, res) => {
 
 app.get('/health', (_req, res) => {
   res.json({ status: 'ok' });
+});
+
+app.get('/favicon.ico', (_req, res) => {
+  res.status(204).end();
 });
 
 // Drone simulation state
@@ -198,4 +207,16 @@ const HOST = process.env.HOST || '0.0.0.0';
 
 server.listen(PORT, HOST, () => {
   console.log(`Drone server running on http://${HOST}:${PORT}`);
+});
+
+server.on('error', (error) => {
+  console.error('Server error:', error);
+});
+
+process.on('uncaughtException', (error) => {
+  console.error('Uncaught exception:', error);
+});
+
+process.on('unhandledRejection', (reason) => {
+  console.error('Unhandled rejection:', reason);
 });
