@@ -3,7 +3,7 @@ import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet'
 import L from 'leaflet';
 import io from 'socket.io-client';
 import { initializeApp } from "firebase/app";
-import { getDatabase, ref, onValue, set } from "firebase/database";
+import { getDatabase, ref, onValue } from "firebase/database";
 import './App.css';
 
 const firebaseConfig = {
@@ -79,9 +79,6 @@ function App() {
 			setStatus(data.status);
 			setSpeed(data.speed || 0);
 			setMaxSpeed(data.maxSpeed || 65);
-			
-			// Sync to Firebase
-			set(ref(db, 'drone'), data);
 		});
 
 		socket.on('command-ack', (ack) => {
