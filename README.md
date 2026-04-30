@@ -1,238 +1,270 @@
+# Drone Ground Control Station
 
-# 🚁 Drone Ground Control Station
+A real-time web-based ground control interface for a simulated unmanned aircraft system. The app shows live telemetry, an interactive map, route controls, and command buttons for a drone simulation.
 
-A real-time web-based ground control interface for monitoring and controlling an unmanned aircraft system (UAS). Built as a portfolio project showcasing modern web technologies for real-time telemetry, websockets, mapping, and UI/UX for control systems.
+The current production setup uses Firebase Hosting for the React frontend and Railway for the Node.js Socket.IO backend.
 
-## 🎯 Features
+## Features
 
-- **Real-time Telemetry Display**: Live GPS coordinates, battery level, altitude, speed, and drone status
-- **Interactive Map**: Leaflet.js map with real-time drone position marker and home base
-- **WebSocket Communication**: Bidirectional real-time data streaming via Socket.io
-- **Drone Control**: Takeoff, land, return to base, and emergency commands
-- **Firebase Integration**: Real-time database sync for data persistence
-- **Responsive UI**: Clean, modern control panel with status indicators
-- **Battery Monitoring**: Visual battery level indicator with color coding and auto-recharge
-- **Status Tracking**: Real-time drone status (idle, flying, landing, returning)
-- **Home Base System**: Automatic return-to-base when battery < 10%, recharging at base
-- **Speed Monitoring**: Real-time speed calculation with max speed display
-- **Route Planning**: Set waypoints/coordinates with visual route lines on map
-- **Map Controls**: Center view on drone, zoom controls, and GPS coordinate display
+- Real-time telemetry for GPS position, battery, altitude, speed, and flight status
+- Interactive Leaflet map with drone, home base, and route destination markers
+- Socket.IO connection between the React frontend and Railway backend
+- Drone commands for takeoff, return to base, land, and emergency landing
+- Route planning by entering latitude and longitude
+- Home-base behavior at Naissaare lighthouse coordinates
+- Automatic low-battery return-to-base behavior
+- Battery drain, recharge, landing, and movement simulation
+- Firebase Realtime Database read path for shared telemetry fallback
+- Hover tooltips on control buttons
+- Health endpoints for Railway deployment checks
 
-## 🛠 Tech Stack
+## Tech Stack
 
 ### Frontend
-- **React** - UI framework
-- **Leaflet.js** - Interactive mapping
-- **Socket.io-client** - Real-time WebSocket communication
-- **Firebase** - Real-time database
+
+- React
+- React Leaflet and Leaflet
+- Socket.IO client
+- Firebase Realtime Database client
+- Firebase Hosting
 
 ### Backend
-- **Node.js** - Server runtime
-- **Express.js** - HTTP server
-- **Socket.io** - WebSocket server
-- **CORS** - Cross-origin resource sharing
 
-### Deployment
-- **Firebase Hosting** - Frontend deployment
-- **Railway/Render** - Backend deployment (optional for production)
+- Node.js
+- Express
+- Socket.IO
+- CORS
+- Railway
 
-## 📁 Project Structure
+## Project Structure
 
-```
+```text
 drone-test/
-├── client/                 # React frontend app
-│   ├── src/
-│   │   ├── App.js         # Main React component
-│   │   ├── App.css        # Styling
-│   │   └── index.js
-│   └── package.json
-├── server/                # Node.js backend
-│   ├── index.js          # Server with Socket.io
-│   └── package.json
-├── firebase.json         # Firebase config
-├── database.rules.json   # Realtime Database rules
-└── README.md
+  client/                 React frontend
+    src/
+      App.js              Main app component
+      App.css             App styling
+      index.js            React entrypoint
+    package.json
+  server/                 Railway backend
+    index.js              Express and Socket.IO server
+    package.json
+  .github/workflows/
+    firebase-hosting-push.yml
+  database.rules.json     Firebase Realtime Database rules
+  firebase.json           Firebase Hosting config
+  railway.json            Railway deploy config
+  README.md
 ```
 
-## 🚀 Getting Started
+## Local Development
 
-### Prerequisites
-- Node.js (v16+)
-- npm or yarn
-- Firebase account
-- Git
+Install backend dependencies:
 
-### Installation
+```bash
+cd server
+npm install
+```
 
-1. **Navigate to project**
-   ```bash
-   cd f:\Projects\Developer\drone-test
-   ```
+Install frontend dependencies:
 
-2. **Install server dependencies**
-   ```bash
-   cd server
-   npm install
-   ```
+```bash
+cd client
+npm install
+```
 
-3. **Install client dependencies**
-   ```bash
-   cd ../client
-   npm install
-   ```
+Start the backend:
 
-4. **Firebase is already initialized** (`firebase init` already run)
-
-## 🏃 Running Locally
-
-### Terminal 1: Start Backend Server
 ```bash
 cd server
 npm start
-# Server runs on http://localhost:3001
 ```
 
-### Terminal 2: Start Frontend App
+The local backend listens on:
+
+```text
+http://localhost:3001
+```
+
+Start the frontend:
+
 ```bash
 cd client
 npm start
-# App opens on http://localhost:3000
 ```
 
-### Testing
-1. Open [http://localhost:3000](http://localhost:3000) in your browser
-2. You should see:
-   - Control panel on the left with status, battery, altitude, speed, GPS
-   - Leaflet map on the right with drone (🚁) and home base (🏠) markers
-   - Real-time updates every 2 seconds
-3. Click buttons to control the drone:
-   - **Takeoff**: Starts flying, altitude increases, battery decreases
-   - **Return to Base**: Navigates back to home base coordinates
-   - **Land**: Transitions to landing, altitude decreases
-   - **Emergency**: Forces immediate landing
-   - **Center View**: Centers map on drone position
-4. Set routes by entering coordinates or clicking on map
-5. Watch battery auto-recharge when drone returns to home base
+The React dev server usually opens at:
 
-## 📦 Building for Deployment
+```text
+http://localhost:3000
+```
 
-### Build Frontend
+The frontend reads `REACT_APP_BACKEND_URL` from `client/.env`. If it is not set, it falls back to `http://localhost:3001`.
+
+## Production URLs
+
+Frontend:
+
+```text
+https://uav-test-5b5e9.web.app
+```
+
+Backend:
+
+```text
+https://drone-test-production.up.railway.app
+```
+
+Useful backend checks:
+
+```text
+https://drone-test-production.up.railway.app/
+https://drone-test-production.up.railway.app/health
+https://drone-test-production.up.railway.app/socket-probe
+```
+
+Expected `/health` response:
+
+```json
+{ "status": "ok" }
+```
+
+## Deployment
+
+### Firebase Hosting
+
+Firebase Hosting deploys the frontend from GitHub Actions on pushes to `main`.
+
+The workflow runs:
+
 ```bash
-cd client
-npm run build
-# Creates optimized build in client/build/
+cd client && npm ci && npm run build
 ```
 
-### Deploy to Firebase Hosting
-```bash
-# From project root
-firebase deploy
-# Deploys frontend to Firebase Hosting
-# View at: https://uav-test-5b5e9.web.app
-```
+Then it deploys `client/build` to Firebase Hosting using `FirebaseExtended/action-hosting-deploy@v0`.
 
-### Deploy Backend
-For production, deploy the backend server to:
-- **Railway** (recommended)
-- **Render**
-- **Heroku** (legacy)
+The React build needs these environment values:
 
-Then update the socket connection URL in `client/src/App.js`.
+- `REACT_APP_BACKEND_URL`
+- `REACT_APP_FIREBASE_API_KEY`
+- `REACT_APP_FIREBASE_AUTH_DOMAIN`
+- `REACT_APP_FIREBASE_DATABASE_URL`
+- `REACT_APP_FIREBASE_PROJECT_ID`
+- `REACT_APP_FIREBASE_STORAGE_BUCKET`
+- `REACT_APP_FIREBASE_MESSAGING_SENDER_ID`
+- `REACT_APP_FIREBASE_APP_ID`
+- `REACT_APP_FIREBASE_MEASUREMENT_ID`
 
-## 🔌 API Documentation
+### Railway Backend
 
-### WebSocket Events
+Railway is the chosen backend host for the Socket.IO server.
 
-#### Client → Server
-- `control` - Send drone commands
-  ```javascript
-  socket.emit('control', 'takeoff' | 'land' | 'return' | 'emergency')
-  ```
-- `set-route` - Set destination coordinates
-  ```javascript
-  socket.emit('set-route', { lat: number, lng: number })
-  ```
+Recommended Railway service settings:
 
-#### Server → Client
-- `drone-update` - Real-time telemetry data
-  ```javascript
-  {
-    lat: number,        // Latitude
-    lng: number,        // Longitude
-    battery: number,    // Battery percentage (0-100)
-    altitude: number,   // Altitude in meters
-    status: string,     // 'idle' | 'flying' | 'landing' | 'returning'
-    speed: number,      // Current speed in km/h
-    maxSpeed: number    // Maximum speed in km/h
+- Root Directory: `server`
+- Build Command: `npm install`
+- Start Command: `npm start`
+- Healthcheck Path: `/health`
+- Public Networking target port: the port shown in the Railway app log, currently `8080`
+
+The server uses `process.env.PORT` in production and falls back to `3001` locally.
+
+## Firebase Realtime Database
+
+The browser client listens to `/drone` as a read-only telemetry fallback. Public browser writes are disabled.
+
+Current rule shape:
+
+```json
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "drone": {
+      ".read": true,
+      ".write": false
+    }
   }
-  ```
-- `command-ack` - Command acknowledgment
-  ```javascript
-  { command: string, status: string }
-  ```
-- `route-ack` - Route setting acknowledgment
-  ```javascript
-  { destination: { lat: number, lng: number }, status: string }
-  ```
+}
+```
 
-## 🎨 UI/UX Highlights
+Deploy database rules manually when they change:
 
-- **Gradient Control Panel**: Purple gradient background for modern look
-- **Real-time Status Indicators**: Animated connection status dot
-- **Color-coded Battery**: Green (>50%), Orange (25-50%), Red (<25%)
-- **Status Colors**: Blue (flying), Orange (landing), Deep Orange (returning), Green (idle)
-- **Speed Display**: Real-time speed with max speed indicator
-- **Home Base Marker**: 🏠 icon on map at Naissaare Tuletorn coordinates
-- **Route Visualization**: Polyline drawing from drone to destination
-- **Map Centering**: Button to center view on drone position
-- **Responsive Design**: Works on desktop and tablet
-- **Leaflet Map**: OpenStreetMap with custom markers and route lines
+```bash
+firebase deploy --only database
+```
 
-## ⚙️ Server Simulation Details
+## Backend API
 
-The backend simulates a real drone with:
-- **GPS Drift**: Random small movements to simulate real GPS variance
-- **Battery Drain**: Realistic consumption based on flight mode:
-  - Normal flight: ~0.2% per 2 seconds (1-2 hour flight time)
-  - Route following: ~0.4% per 2 seconds (higher consumption)
-  - Return to base: ~0.3% per 2 seconds (medium consumption)
-  - Landing: ~0.1% per 2 seconds (minimal consumption)
-- **Auto-Recharge**: 0.5% per 2 seconds when idle at home base
-- **Altitude Changes**: Gradual climb during takeoff, descent during landing
-- **Speed Calculation**: Real-time km/h based on GPS movement (max 65 km/h)
-- **Status Transitions**: Proper state management (idle → flying → landing → idle)
-- **Home Base**: Naissaare Tuletorn (59.603778°N 24.510694°E) with auto-return when battery < 10%
-- **Route Following**: Direct navigation to set waypoints with visual route lines
+### HTTP
 
-## 📝 Notes
+- `GET /` returns service status
+- `GET /health` returns health status for Railway
+- `GET /socket-probe` confirms regular HTTP routing to the backend
+- `GET /favicon.ico` returns no content
 
-- The server simulates drone data; no real drone hardware required
-- Firebase auto-syncs data across multiple clients
-- Socket.io automatically reconnects if connection is lost
-- GPS coordinates start at Naissaare Tuletorn home base (59.603778°N 24.510694°E)
-- Battery auto-recharges when drone is idle at home base
-- Speed calculations are based on real GPS movement simulation
-- Route waypoints can be set by clicking coordinates on the map
+### Socket.IO Events
 
-## 🔮 Future Enhancements
+Client to server:
 
-- [x] Return-to-base functionality
-- [x] Battery auto-recharge system
-- [x] Speed monitoring and display
-- [x] Route planning and waypoint navigation
-- [x] Home base system with coordinates
-- [ ] Multi-drone support
-- [ ] Real drone integration (via MAVLink protocol)
-- [ ] Live video feed integration
-- [ ] Historical telemetry playback
-- [ ] Advanced flight path planning with multiple waypoints
-- [ ] Weather integration
-- [ ] No-fly zone definitions
-- [ ] Mission planning UI with save/load functionality
-- [ ] Altitude hold and automated flight patterns
+```javascript
+socket.emit('control', 'takeoff' | 'land' | 'return' | 'emergency');
+socket.emit('set-route', { lat: number, lng: number });
+```
 
----
+Server to client:
 
-**Ready to run?** Follow the "Running Locally" section above!
+```javascript
+socket.on('drone-update', {
+  lat: number,
+  lng: number,
+  battery: number,
+  altitude: number,
+  status: 'idle' | 'flying' | 'landing' | 'returning',
+  speed: number,
+  maxSpeed: number
+});
+```
 
+Acknowledgement events:
 
+```javascript
+socket.on('command-ack', { command: string, status: string });
+socket.on('route-ack', { destination: { lat: number, lng: number }, status: string });
+```
+
+## Simulation Notes
+
+- The drone starts at Naissaare lighthouse: `59.603778, 24.510694`
+- Normal flight drains battery by about `0.2%` every two seconds
+- Route following drains battery by about `0.4%` every two seconds
+- Return-to-base drains battery by about `0.3%` every two seconds
+- Landing drains battery by about `0.1%` every two seconds
+- Idle drone at home base recharges by about `0.5%` every two seconds
+- Low battery below `10%` automatically switches the drone to returning
+- Speed is estimated from simulated GPS movement
+
+## Troubleshooting
+
+If the frontend shows Socket.IO CORS errors with a `502 Bad Gateway`, check the backend URL directly first:
+
+```text
+https://drone-test-production.up.railway.app/health
+```
+
+If `/health` is also `502`, the problem is Railway routing or service configuration, not React CORS.
+
+The Railway public networking target port must match the deployed app port in the logs. In the current deployment this was `8080`.
+
+If Firebase logs `permission_denied`, check whether the browser is attempting a write to a protected path or whether the Realtime Database rules have been deployed.
+
+## Future Ideas
+
+- Multi-drone support
+- MAVLink or real drone integration
+- Live video feed
+- Historical telemetry playback
+- Multi-waypoint mission planning
+- Weather and wind overlays
+- No-fly-zone overlays
+- Saved missions

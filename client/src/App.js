@@ -197,7 +197,10 @@ function App() {
 						/>
 					</div>
 					<button 
-						className="btn btn-info"
+						className="btn btn-info tooltip-button"
+						title="Send the drone to the latitude and longitude entered above."
+						aria-label="Set route to the entered destination coordinates"
+						data-tooltip="Send the drone to the entered coordinates"
 						onClick={() => {
 							if (routeLat && routeLng) {
 								const dest = { lat: parseFloat(routeLat), lng: parseFloat(routeLng) };
@@ -208,47 +211,68 @@ function App() {
 							}
 						}}
 					>
-						🗺️ Set Route
+						<span className="btn-icon" aria-hidden="true">&#9679;</span>
+						<span>Set Route</span>
 					</button>
 				</div>
 
 				<div className="controls">
 					<button 
-						className="btn btn-success"
+						className="btn btn-success tooltip-button"
+						title="Start flight from idle status and begin climbing."
+						aria-label="Takeoff"
+						data-tooltip="Start flight and begin climbing"
 						onClick={() => sendCommand('takeoff')}
 						disabled={status !== 'idle'}
 					>
-						✈️ Takeoff
+						<span className="btn-icon" aria-hidden="true">&#8593;</span>
+						<span>Takeoff</span>
 					</button>
 					<button 
-						className="btn btn-primary"
+						className="btn btn-primary tooltip-button"
+						title="Navigate back to the Naissaare lighthouse home base."
+						aria-label="Return to base"
+						data-tooltip="Navigate back to home base"
 						onClick={() => sendCommand('return')}
 						disabled={status === 'landing'}
 					>
-						🏠 Return to Base
+						<span className="btn-icon" aria-hidden="true">&#8962;</span>
+						<span>Return to Base</span>
 					</button>
 					<button 
-						className="btn btn-warning"
+						className="btn btn-warning tooltip-button"
+						title="Begin a controlled landing from the current position."
+						aria-label="Land"
+						data-tooltip="Begin a controlled landing"
 						onClick={() => sendCommand('land')}
 						disabled={status === 'idle'}
 					>
-						🛬 Land
+						<span className="btn-icon" aria-hidden="true">&#8595;</span>
+						<span>Land</span>
 					</button>
 					<button 
-						className="btn btn-danger"
+						className="btn btn-danger tooltip-button"
+						title="Force an immediate emergency landing."
+						aria-label="Emergency landing"
+						data-tooltip="Force an immediate landing"
 						onClick={() => sendCommand('emergency')}
 					>
-						🚨 Emergency
+						<span className="btn-icon" aria-hidden="true">!</span>
+						<span>Emergency</span>
 					</button>
 					<button 
-						className="btn btn-info"
+						className="btn btn-info tooltip-button"
+						title="Center the map on the current drone position."
+						aria-label="Center map on drone"
+						data-tooltip="Center the map on the drone"
 						onClick={() => {
 							if (mapRef.current) {
 								mapRef.current.setView(dronePos, 16);
 							}
 						}}
 					>
-						📍 Center View
+						<span className="btn-icon" aria-hidden="true">&#9678;</span>
+						<span>Center View</span>
 					</button>
 				</div>
 			</div>
